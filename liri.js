@@ -1,29 +1,31 @@
-require("dotenv").config();
 
+require("dotenv").config();
 var keys = require("./key.js");
-var spotify = new (keys.spotify);
-var client = new twitter(keys.twitter);
+console.log('keys');
+var Spotify = require('node-spotify-api');
+var Twitter = require('twitter');
+
+
+var spotify = new Spotify (keys.spotify);
+var client = new Twitter(keys.twitter);
 var request = require('request');
-var liriArg = process.argv[2];
+var method = process.argv[2];
+var type = process.argv[3];
+var query = process.argv[4];
+
 var fs = require('fs');
 
-var liriArg = process.argv[2];
-var runThis = function(argOne, argTwo) {
-  pick(argOne, argTwo);
-};
 
-runThis(process.argv[2], process.argv[3]);
-
-switch(liriArg) {
-    case "my-tweets":tweetThis(); break;
-    case "spotify-this-song":spotifyThis(); break;
-    case "movie-this":movieThis(); break;
-    case "do-what-it-says": justDoIt();break;
+function  callMethod (method, query) {
+switch (method) {
+    case ("my-tweets"):tweetThis(); break;
+    case ("spotify-this-song"):spotifyThis(type, query); break;
+    case ("movie-this"):movieThis(); break;
+    case ("do-what-it-says"): justDoIt(); break;
+}
 }
 
 function tweetThis () {
-    var tweets = new twitter(exports.twitter);
-    var twitterUserName = "dpb0808"
     var params = { screen_name: 'dpb0808', count: 20 };
 
   client.get('statuses/user_timeline', params, function(error, tweets, response) {
@@ -36,41 +38,26 @@ function tweetThis () {
             'Tweets: ' : tweets[i].text,
         });
       }
-      console.log(data);
+      console.log(tweets[i].text);
     }
   });
 }
 
-function spotifyThis () {
-  if (songName === undefined) {
-    songName = 'the sign';
-  };
+function spotifyThis (type, query) {
 
-  spotify.search({ type: 'track', query: songName }, function(err, data) {
+  spotify.search({ type, query}, function(err, data) {
     if (err) {
       console.log('Error occurred: ' + err);
       return;
     }
-
-    var songs = data.tracks.items;
-    var data = []; //empty array to hold data
-
-    for (var i = 0; i < songs.length; i++) {
-      data.push({
-        'artist(s)': songs[i].artists.map(getArtistNames),
-        'song name: ': songs[i].name,
-        'preview song: ': songs[i].preview_url,
-        'album: ': songs[i].album.name,
-      });
-    }
-    console.log(data);
+    console.log(data[type+"s"].items);
   });
 };
 
 function movieThis(movieName) {
 
   if (movieName === undefined) {
-    movieName = 'Mr Nobody';
+    movieName == 'Mr Nobody';
   }
 
   var queryURL = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=full&tomatoes=true&r=json";
@@ -109,6 +96,8 @@ function movieThis(movieName) {
     } else if (dataArr.length == 1) {
       pick(dataArr[0]);
     }
-
+callMethod(dataArr[0],dataArr[1]);
   });
 }
+
+callMethod(method, query);
